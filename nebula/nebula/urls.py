@@ -14,22 +14,27 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path, re_path, include, reverse_lazy
+from django.views.generic.base import RedirectView
 from rest_framework import routers
 from user import views as user_view
+from user.views import UserLogIn
 from quota import views as quota_view
 
 
 router = routers.DefaultRouter()
 router.register(r'employees', user_view.UserViewSet)
 router.register(r'organizations', user_view.OrganizationViewSet)
+router.register(r'users', user_view.UserViewSet)
 router.register(r'quota', quota_view.QuotaViewSet)
 router.register(r'quotastatistics', quota_view.QuotaStatisticsViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('', include(router.urls)),
+    path('api/v1/', include(router.urls)),
+    path('api-user-login/', UserLogIn.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    # path('user/', include('user.urls')),
-    # path('quota/', include('quota.urls'))
-]
+    re_path(r'^$', RedirectView.as_view(url=reverse_lazy('api-root'), permanent=False)),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

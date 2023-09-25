@@ -1,6 +1,6 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
-from .models import Employee, Organization
+from .models import MyUser, Employee, Organization
 from django.utils.html import format_html
 from import_export import resources
 
@@ -61,5 +61,6 @@ class OrganisationAdmin(ImportExportModelAdmin):
     resource_class = OrganizationResource
 
 
+admin.site.register(MyUser)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Organization, OrganisationAdmin)
