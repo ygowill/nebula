@@ -19,7 +19,7 @@ class QuotaStatisticsResource(resources.ModelResource):
 
 class QuotaAdmin(ImportExportModelAdmin):
     # 定制哪些字段需要展示
-    list_display = ('id', 'user', 'size', 'is_linux', 'warning',)
+    list_display = ('id', 'employee', 'size', 'is_linux', 'warning',)
 
     '''分页：每页10条'''
     list_per_page = 10
@@ -35,7 +35,7 @@ class QuotaAdmin(ImportExportModelAdmin):
 
 class QuotaStatisticsAdmin(ImportExportModelAdmin):
     # 定制哪些字段需要展示
-    list_display = ('id', 'user', 'date', 'is_linux', 'used', 'dept')
+    list_display = ('id', 'employee', 'date', 'is_linux', 'used', 'dept')
 
     '''分页：每页10条'''
     list_per_page = 10

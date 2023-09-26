@@ -25,7 +25,7 @@ from quota import views as quota_view
 
 
 router = routers.DefaultRouter()
-router.register(r'employees', user_view.UserViewSet)
+router.register(r'employees', user_view.EmployeeViewSet)
 router.register(r'organizations', user_view.OrganizationViewSet)
 router.register(r'users', user_view.UserViewSet)
 router.register(r'quota', quota_view.QuotaViewSet)

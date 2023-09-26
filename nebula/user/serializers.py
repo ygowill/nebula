@@ -3,16 +3,22 @@ from rest_framework import serializers
 from user.models import MyUser, Employee, Organization
 
 
-class EmployeeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Employee
-        fields = ['id', 'name', 'login', 'department', 'onboard_date']
-
-
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ['id', 'dept', 'code', 'description']
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    dept = serializers.SerializerMethodField()
+
+    def get_dept(self, instance):
+        data = Organization.objects.get(employee=instance)
+        data = OrganizationSerializer(data).data
+        return data
+    class Meta:
+        model = Employee
+        fields = ['id', 'name', 'login', 'dept', 'onboard_date']
 
 
 class MyUserSerializer(serializers.ModelSerializer):
