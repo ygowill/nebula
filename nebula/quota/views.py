@@ -23,7 +23,7 @@ class QuotaStatisticsViewSet(viewsets.ModelViewSet):
     serializer_class = QuotaStatisticsSerializer
     
 
-class QuotaStatistics():
-    requests.post(STORAGE_URLS.Windows + f'/user/quotaStatistics')
-    requests.post(STORAGE_URLS.Linux + f'/user/quotaStatistics')
+# class QuotaStatistics():
+#     requests.post(STORAGE_URLS.Windows + f'/user/quotaStatistics')
+#     requests.post(STORAGE_URLS.Linux + f'/user/quotaStatistics')
     
