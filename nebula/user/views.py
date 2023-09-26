@@ -16,6 +16,8 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib import auth
+from user.models import Employee, Organization, MyUser
+from quota.models import Quota
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 
@@ -56,45 +58,66 @@ class UserLogIn(ObtainAuthToken):
 
 
 class addUser():
-    @api_view(['POST'])
+    
     def add_user(self, request):
-        if request.method == 'POST':
-            login_user, created = Employee.objects.get_or_create(login=request.data['login_user'])
-            login_dept, created = Organization.objects.get_or_create(code=login_user.department)
-            if login_dept != 'hr' :
-                return Response("Only hr can add user", status=HTTP_400_BAD_REQUEST)
+        login_user = Employee.objects.get(id=request.data['login_user'])
+        login_dept = Organization.objects.get(code=login_user.department)
+        if login_dept != 'hr' :
+            return Response("Only hr can add user!", status=HTTP_400_BAD_REQUEST)
+        
+        new_employee = Employee(
+            name=request.data['name'],
+            login=request.data['login'],
+            department=request.data['department'],
+            onboard_date=request.data['onboard_date']
+        )
+        
+        quota_data = {
+            'user': request.data['login'],
+            'is_Linux': 1,
+            'size': request.data['quota'],
+            'warning': request.data['quota'] * 0.8
+        }
 
-            employee_data = {
-                'name': request.data['name'],
-                'login': request.data['login'],
-                'department': request.data['department'],
-                'onboard_date': request.data['onboard_date'],
-            }
+        add_user_params = {
+            "users": [{
+                "firstname": request.data['name'].split(" ")[0],
+                "lastname": request.data['name'].split(" ")[1],
+                "username": request.data['username'],
+                "pwd": "qweASD123",
+                "quota": request.data['quota'],
+                "dept": request.data['department']
+            }]
+        }
+        response_windows = requests.post(STORAGE_URLS.Windows + '/user/addUsers', json=add_user_params)
+        
+        if (response_windows.status_code == 200 and response_windows.json().get("success") == 'True'):
+            response_linux = request.post(STORAGE_URLS.Linux + '/user/addUsers', add_user_params)
+            if (response_linux.status_code == 200 and response_linux.json().get("success") == 'True'):
+                new_employee.save()
+                return Response(f"add {add_user_params.users[0].username} successfully!")
+            else:
+                requests.post(STORAGE_URLS.Windows + f'/user/removeUser/{add_user_params.users[0].username}')
+        return Response(f"Failed to add user {add_user_params.users[0].username}!")
+    
 
-            quota_data = {
-                'user': request.data['login'],
-                'is_Linux': 1,
-                'size': request.data['quota'],
-                'warning': request.data['quota'] * 0.8
-            }
+class removeUser():
+    
+    def remove_user(self, request):
+        requests.post(STORAGE_URLS.Windows + f'/user/removeUser/{request.data['username']}')
+        requests.post(STORAGE_URLS.Linux + f'/user/removeUser/{request.data['username']}')
+        
 
-            dept, created = Organization.objects.get_or_create(code=request.data['department'])
-
-            add_user_params = {
-                "users": [{
-                    "firstname": request.data['name'].split(" ")[0],
-                    "lastname": request.data['name'].split(" ")[1],
-                    "username": request.data['login'],
-                    "pwd": request.data['password'],
-                    "": ""
-                }]
-            }
-            response_windows = requests.post(STORAGE_URLS.Windows + '', add_user_params)
-            response_linux = request.post(STORAGE_URLS.Linux + '', add_user_params)
-
-            employee_serializer = EmployeeSerializer(data=employee_data)
-            quota_serializer = QuotaSerializer(data=quota_data)
-
-            if employee_serializer.is_valid() and quota_serializer.is_valid():
-                employee_serializer.save()
-                quota_serializer.save()
+class changeQuota():
+    
+    def change_quota(self, request):
+        change_quota_param = {
+            "username": request.data['username']
+            "quota": request.data['quota']
+        }
+        
+        response_windows = requests.post(STORAGE_URLS.Windows + '/user/changeQuota', json=change_quota_param)
+        response_Linux = requests.post(STORAGE_URLS.Linux + '/user/changeQuota', json=change_quota_param)
+        
+        return Response(f"Changed the quota for {change_quota_param.username} successfully!")
+    

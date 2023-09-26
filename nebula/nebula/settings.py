@@ -157,6 +157,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AUTH_USER_MODEL = 'user.MyUser'
 
 STORAGE_URLS = {
-    'Linux': "",
-    'Windows': ""
+    'Linux': "10.3.181.221:8000",
+    'Windows': "10.3.181.64:8000"
 }
