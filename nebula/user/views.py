@@ -102,14 +102,14 @@ class UserViewSet(viewsets.ModelViewSet):
                     employee=employee,
                     size=info["quota"],
                     is_linux=True,
-                    warning=info["quota"] * 0.8
+                    warning=int(info["quota"]) * 0.8
                 )
                 
                 windows_quota = Quota.objects.create(
                     employee=employee,
                     size=info["quota"],
                     is_linux=False,
-                    warning=info["quota"] * 0.8
+                    warning=int(info["quota"]) * 0.8
                 )
 
                 add_user_params = {
@@ -124,14 +124,14 @@ class UserViewSet(viewsets.ModelViewSet):
                 }
 
                 windows_url = STORAGE_URLS["Windows"] + '/user/addUsers'
-                timeout = 10
                 print(windows_url)
+                timeout = 10
                 response_windows = requests.post(url=windows_url, json=add_user_params, timeout=timeout)
-                if response_windows.status_code == 200 and response_windows.json().get("success") == 'True':
+                if response_windows.status_code == 200:
                     linux_url = STORAGE_URLS["Linux"] + '/user/addUsers'
                     print(linux_url)
-                    response_linux = request.post(url=linux_url, json=add_user_params, timeout=timeout)
-                    if response_linux.status_code == 200 and response_linux.json().get("success") == 'True':
+                    response_linux = requests.post(url=linux_url, json=add_user_params, timeout=timeout)
+                    if response_linux.status_code == 200:
                         pass
                     else:
                         url = STORAGE_URLS["Windows"] + f'/user/removeUser/{add_user_params["users"][0]["username"]}'
@@ -147,8 +147,8 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response("Success", HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        # requests.post(STORAGE_URLS.Windows + f'/user/removeUser/{request.data["username"]}')
-        # requests.post(STORAGE_URLS.Linux + f'/user/removeUser/{request.data["username"]}')
+        requests.post(STORAGE_URLS.Windows + f'/user/removeUser/{request.data["username"]}')
+        requests.post(STORAGE_URLS.Linux + f'/user/removeUser/{request.data["username"]}')
         user = MyUser.objects.get(username=request.data["username"])
         user.delete()
 

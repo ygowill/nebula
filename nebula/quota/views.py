@@ -15,8 +15,8 @@ from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_400_BAD
 import traceback
 from rest_framework.decorators import api_view
 from django.db.models import Count, Sum
-import json
-import pandas
+import requests
+from nebula.settings import STORAGE_URLS
 
 
 class QuotaViewSet(viewsets.ModelViewSet):
@@ -36,7 +36,7 @@ class QuotaStatisticsViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            username = request.query_params.get("username", "")
+            username = request.user.username
             employee = Employee.objects.get(login=username)
             if employee.department.dept == 'it':
                 queryset = QuotaStatistics.objects.order_by('dept__id').values()
@@ -98,7 +98,7 @@ class QuotaStatisticsViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def get_all_groupby_department(request, *args, **kwargs):
     try:
-        username = request.query_params.get("username", "")
+        username = request.user.username
         employee = Employee.objects.get(login=username)
 
         if employee.department.dept == 'it':
@@ -136,7 +136,40 @@ def get_all_groupby_department(request, *args, **kwargs):
     except BaseException as be:
         print(traceback.format_exc())
         return Response(be.__str__(), HTTP_400_BAD_REQUEST)
-    
+
+
+@api_view(['GET'])
+def get_current_all_groupby_department(request, *args, **kwargs):
+    pass
+
+
+@api_view(["GET"])
+def get_current_user_quotastayistics(request, *args, **kwargs):
+    try:
+        windows_statistics = requests.post(STORAGE_URLS.Windows + f'/user/quotaStatistics').json()
+        linux_statisyics = requests.post(STORAGE_URLS.Linux + f'/user/quotaStatistics').json()
+
+        response_data = {"data": []}
+        for statistic in [windows_statistics, linux_statisyics]:
+            for line in statistic:
+                username = line["username"]
+                employee = Employee.objects.get(login=username)
+                if employee:
+                    data = {
+                        "limit": line["limit"],
+                        "usage": line["used"],
+                        "user": username,
+                        "dept": employee.department.dept,
+                        "machine": "Windows",
+                        "date": str(datetime.datetime.now().date()),
+                    }
+                    response_data["data"].append(data)
+
+        return Response(response_data, HTTP_200_OK)
+    except BaseException as be:
+        print(traceback.format_exc())
+        return Response(be.__str__(), HTTP_400_BAD_REQUEST)
+
 
 # class QuotaStatistics():
 #     requests.post(STORAGE_URLS.Windows + f'/user/quotaStatistics')

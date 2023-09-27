@@ -35,6 +35,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('api/v1/', include(router.urls)),
     path('api/v2/quotastatistics/get_all_groupby_department/', quota_view.get_all_groupby_department),
+    path('api/v2/quotastatistics/get_current_all_groupby_department/', quota_view.get_current_all_groupby_department),
+    path('api/v2/quotastatistics/get_current_user_quotastayistics/', quota_view.get_current_user_quotastayistics),
     path('api-user-login/', UserLogIn.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     re_path(r'^$', RedirectView.as_view(url=reverse_lazy('api-root'), permanent=False)),
