@@ -8,7 +8,7 @@ from django.dispatch import receiver
 class QuotaStatistics(models.Model):
     id = models.AutoField(primary_key=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    date = models.DateField(verbose_name="login date")
+    date = models.DateField(verbose_name="report date")
     is_linux = models.BooleanField(verbose_name="server type(true for linux)")
     used = models.BigIntegerField(verbose_name="used size")
     dept = models.ForeignKey(Organization, on_delete=models.CASCADE)

@@ -34,6 +34,7 @@ router.register(r'quotastatistics', quota_view.QuotaStatisticsViewSet)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('api/v1/', include(router.urls)),
+    path('api/v2/quotastatistics/get_all_groupby_department/', quota_view.get_all_groupby_department),
     path('api-user-login/', UserLogIn.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     re_path(r'^$', RedirectView.as_view(url=reverse_lazy('api-root'), permanent=False)),
