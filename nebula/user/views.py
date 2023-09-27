@@ -104,7 +104,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     is_linux=True,
                     warning=info["quota"] * 0.8
                 )
-
+                
                 windows_quota = Quota.objects.create(
                     employee=employee,
                     size=info["quota"],
@@ -123,16 +123,23 @@ class UserViewSet(viewsets.ModelViewSet):
                     }]
                 }
 
-                # response_windows = requests.post(STORAGE_URLS["Windows"] + '/user/addUsers', json=add_user_params)
-                # if response_windows.status_code == 200 and response_windows.json().get("success") == 'True':
-                #     response_linux = request.post(STORAGE_URLS["Linux"], add_user_params)
-                #     if response_linux.status_code == 200 and response_linux.json().get("success") == 'True':
-                #         pass
-                #     else:
-                #         requests.post(STORAGE_URLS.Windows + f'/user/removeUser/{add_user_params["users"][0]["username"]}')
-                #         raise Exception("fail to create quota on linux")
-                # else:
-                #     raise Exception("failed to create quota on windows")
+                windows_url = STORAGE_URLS["Windows"] + '/user/addUsers'
+                timeout = 10
+                print(windows_url)
+                response_windows = requests.post(url=windows_url, json=add_user_params, timeout=timeout)
+                if response_windows.status_code == 200 and response_windows.json().get("success") == 'True':
+                    linux_url = STORAGE_URLS["Linux"] + '/user/addUsers'
+                    print(linux_url)
+                    response_linux = request.post(url=linux_url, json=add_user_params, timeout=timeout)
+                    if response_linux.status_code == 200 and response_linux.json().get("success") == 'True':
+                        pass
+                    else:
+                        url = STORAGE_URLS["Windows"] + f'/user/removeUser/{add_user_params["users"][0]["username"]}'
+                        print(url)
+                        requests.post(url=url, timeout=timeout)
+                        raise Exception("fail to create quota on linux")
+                else:
+                    raise Exception("failed to create quota on windows")
 
         except BaseException as be:
             print(traceback.format_exc())
